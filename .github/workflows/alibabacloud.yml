@@ -19,13 +19,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20' # 匹配 ECS 服务器的 Node 版本
-          cache: 'npm' # 缓存 npm 依赖，加速构建
+          cache: 'pnpm' # 缓存 npm 依赖，加速构建
 
       # 步骤 3：安装依赖并打包静态资源
       - name: Install dependencies and build
         run: |
-          npm install
-          npm run build # 执行 next build，生成 out/ 目录
+          pnpm install
+          pnpm run build # 执行 next build，生成 out/ 目录
 
       # 步骤 4：将静态资源传输到 ECS 服务器
       - name: Deploy to ECS via SSH
