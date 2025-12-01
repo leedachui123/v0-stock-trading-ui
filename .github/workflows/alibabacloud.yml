@@ -37,6 +37,7 @@ jobs:
           key: ${{ secrets.ECS_PRIVATE_KEY }}
           # 执行远程命令：先清空目标目录，再传输本地 out/ 到服务器部署目录
           script: |
+            echo "Deploying to ${{ secrets.ECS_DEPLOY_PATH }} on ${{ secrets.ECS_HOST }}"
             sudo rm -rf ${{ secrets.ECS_DEPLOY_PATH }}/*
             sudo chown -R ${{ secrets.ECS_USERNAME }}:${{ secrets.ECS_USERNAME }} ${{ secrets.ECS_DEPLOY_PATH }}
           # 传输本地文件到服务器（替代 scp，更高效）
