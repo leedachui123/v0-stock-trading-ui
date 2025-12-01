@@ -28,7 +28,17 @@ jobs:
           pnpm install
           pnpm run build # 执行 next build，生成 out/ 目录
 
-      # 步骤 4：将静态资源传输到 ECS 服务器
+      # 步骤 4: 测试 SSH 连接和认证
+      - name: Debug SSH authentication (write key and try verbose ssh)
+        run: |
+          echo "$GITHUB_ACTION_PATH" # keep minimal log
+          # 写入私钥文件
+          echo "${{ secrets.ECS_PRIVATE_KEY }}" > /tmp/deploy_key
+          chmod 600 /tmp/deploy_key
+          # 试一次 SSH 认证（详细输出），不执行远程命令，仅测试认证并退出
+          ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=10 -p "${{ secrets.ECS_PORT }}" "${{ secrets.ECS_USERNAME }}"@"${{ secrets.ECS_HOST }}" exit || true
+
+      # 步骤 5：将静态资源传输到 ECS 服务器
       - name: Deploy to ECS via SSH
         uses: appleboy/ssh-action@master # 第三方 SSH 操作插件
         with:
@@ -46,7 +56,7 @@ jobs:
           source: "out/"
           target: ${{ secrets.ECS_DEPLOY_PATH }}
 
-      # 步骤 5：重启 Nginx（确保配置生效）
+      # 步骤 6：重启 Nginx（确保配置生效）
       - name: Restart Nginx
         uses: appleboy/ssh-action@master
         with:
