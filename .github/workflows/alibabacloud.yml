@@ -49,8 +49,8 @@ jobs:
           # 执行远程命令：先清空目标目录，再传输本地 out/ 到服务器部署目录
           script: |
             echo "Deploying to ${{ secrets.ECS_DEPLOY_PATH }} on ${{ secrets.ECS_HOST }}"
-            sudo rm -rf ${{ secrets.ECS_DEPLOY_PATH }}/*
-            sudo chown -R ${{ secrets.ECS_USERNAME }}:${{ secrets.ECS_USERNAME }} ${{ secrets.ECS_DEPLOY_PATH }}
+            rm -rf ${{ secrets.ECS_DEPLOY_PATH }}/*
+            chown -R ${{ secrets.ECS_USERNAME }}:${{ secrets.ECS_USERNAME }} ${{ secrets.ECS_DEPLOY_PATH }}
           # 传输本地文件到服务器（替代 scp，更高效）
           rsync: true
           source: "out/"
@@ -65,5 +65,5 @@ jobs:
           username: ${{ secrets.ECS_USERNAME }}
           key: ${{ secrets.ECS_PRIVATE_KEY }}
           script: |
-            sudo systemctl restart nginx
-            sudo systemctl status nginx # 可选：输出 Nginx 状态，便于排查问题
+            systemctl restart nginx
+            systemctl status nginx # 可选：输出 Nginx 状态，便于排查问题
