@@ -23,6 +23,7 @@ jobs:
       # 步骤 3：安装依赖并打包静态资源
       - name: Install dependencies and build
         run: |
+          npm install -g pnpm # 安装 pnpm 包管理器
           pnpm install
           pnpm run build # 执行 next build，生成 out/ 目录
 
