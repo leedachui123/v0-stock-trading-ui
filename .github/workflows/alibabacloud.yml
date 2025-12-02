@@ -38,9 +38,9 @@ jobs:
       - name: 上传构建产物到服务器
         run: |
           # 确保服务器部署目录存在
-          ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_HOST }} -p ${{ secrets.ECS_PORT }} "mkdir -p ${{ secrets.DEPLOY_PATH }}"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_HOST }} -p ${{ secrets.ECS_PORT }} "mkdir -p ${{ secrets.ECS_DEPLOY_PATH }}"
           # 上传 dist 目录（根据项目调整，如 build、out 等）
-          scp -o StrictHostKeyChecking=no -P ${{ secrets.ECS_PORT }} -r ./out/* ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_HOST }}:${{ secrets.DEPLOY_PATH }}
+          scp -o StrictHostKeyChecking=no -P ${{ secrets.ECS_PORT }} -r ./out/* ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_HOST }}:${{ secrets.ECS_DEPLOY_PATH }}
 
       # 可选步骤：执行服务器额外命令（如重启 Nginx、清理缓存）
       - name: 重启 Nginx（可选）
