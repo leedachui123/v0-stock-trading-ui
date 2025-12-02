@@ -28,42 +28,21 @@ jobs:
           pnpm install
           pnpm run build # 执行 next build，生成 out/ 目录
 
-      # 步骤 4: 测试 SSH 连接和认证
-      - name: Debug SSH authentication (write key and try verbose ssh)
+       # 步骤4：配置 SSH 免密登录
+      - name: 配置 SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      # 步骤5：上传打包后的文件到服务器
+      - name: 上传构建产物到服务器
         run: |
-          echo "$GITHUB_ACTION_PATH" # keep minimal log
-          # 写入私钥文件
-          echo "${{ secrets.ECS_PRIVATE_KEY }}" > /tmp/deploy_key
-          chmod 600 /tmp/deploy_key
-          # 试一次 SSH 认证（详细输出），不执行远程命令，仅测试认证并退出
-          ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=10 -p "${{ secrets.ECS_PORT }}" "${{ secrets.ECS_USERNAME }}"@"${{ secrets.ECS_HOST }}" exit || true
+          # 确保服务器部署目录存在
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} -p ${{ secrets.SSH_PORT }} "mkdir -p ${{ secrets.DEPLOY_PATH }}"
+          # 上传 dist 目录（根据项目调整，如 build、out 等）
+          scp -o StrictHostKeyChecking=no -P ${{ secrets.SSH_PORT }} -r ./out/* ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}
 
-      # 步骤 5：将静态资源传输到 ECS 服务器
-      - name: Deploy to ECS via SSH
-        uses: appleboy/ssh-action@master # 第三方 SSH 操作插件
-        with:
-          host: ${{ secrets.ECS_HOST }}
-          port: ${{ secrets.ECS_PORT }}
-          username: ${{ secrets.ECS_USERNAME }}
-          key: ${{ secrets.ECS_PRIVATE_KEY }}
-          # 执行远程命令：先清空目标目录，再传输本地 out/ 到服务器部署目录
-          script: |
-            echo "Deploying to ${{ secrets.ECS_DEPLOY_PATH }} on ${{ secrets.ECS_HOST }}"
-            # rm -rf ${{ secrets.ECS_DEPLOY_PATH }}/*
-            # chown -R ${{ secrets.ECS_USERNAME }}:${{ secrets.ECS_USERNAME }} ${{ secrets.ECS_DEPLOY_PATH }}
-          # 传输本地文件到服务器（替代 scp，更高效）
-          rsync: true
-          source: "out/"
-          target: ${{ secrets.ECS_DEPLOY_PATH }}
-
-      # 步骤 6：重启 Nginx（确保配置生效）
-      - name: Restart Nginx
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.ECS_HOST }}
-          port: ${{ secrets.ECS_PORT }}
-          username: ${{ secrets.ECS_USERNAME }}
-          key: ${{ secrets.ECS_PRIVATE_KEY }}
-          script: |
-            systemctl restart nginx
-            systemctl status nginx # 可选：输出 Nginx 状态，便于排查问题
+      # 可选步骤：执行服务器额外命令（如重启 Nginx、清理缓存）
+      - name: 重启 Nginx（可选）
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} -p ${{ secrets.SSH_PORT }} "systemctl restart nginx"
