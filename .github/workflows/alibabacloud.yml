@@ -32,17 +32,17 @@ jobs:
       - name: 配置 SSH
         uses: webfactory/ssh-agent@v0.9.0
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-private-key: ${{ secrets.ECS_PRIVATE_KEY }}
 
       # 步骤5：上传打包后的文件到服务器
       - name: 上传构建产物到服务器
         run: |
           # 确保服务器部署目录存在
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} -p ${{ secrets.SSH_PORT }} "mkdir -p ${{ secrets.DEPLOY_PATH }}"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_HOST }} -p ${{ secrets.ECS_PORT }} "mkdir -p ${{ secrets.DEPLOY_PATH }}"
           # 上传 dist 目录（根据项目调整，如 build、out 等）
-          scp -o StrictHostKeyChecking=no -P ${{ secrets.SSH_PORT }} -r ./out/* ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}
+          scp -o StrictHostKeyChecking=no -P ${{ secrets.ECS_PORT }} -r ./out/* ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_HOST }}:${{ secrets.DEPLOY_PATH }}
 
       # 可选步骤：执行服务器额外命令（如重启 Nginx、清理缓存）
       - name: 重启 Nginx（可选）
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} -p ${{ secrets.SSH_PORT }} "systemctl restart nginx"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_HOST }} -p ${{ secrets.ECS_PORT }} "systemctl restart nginx"
